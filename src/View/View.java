@@ -6,7 +6,7 @@ import java.awt.*;
 public class View extends JFrame {
     private JTextArea inputTA, outputTA;
     private JButton runBtn;
-    private JMenuItem exitMenu, aboutMenu;
+    private JMenuItem exitMenu, aboutMenu, gettingStarted;
     private JCheckBox headerCB, indexCB;
 
     public View() {
@@ -79,7 +79,10 @@ public class View extends JFrame {
 
         JMenu helpMenu = new JMenu("Help");
         aboutMenu = new JMenuItem("About");
+        gettingStarted = new JMenuItem("Getting Started");
+        helpMenu.add(gettingStarted);
         helpMenu.add(aboutMenu);
+
         menuBar.add(fileMenu);
         menuBar.add(helpMenu);
 
@@ -115,4 +118,7 @@ public class View extends JFrame {
         return aboutMenu;
     }
 
+    public JMenuItem getGettingStartedMenu() {
+        return gettingStarted;
+    }
 }
