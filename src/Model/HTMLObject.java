@@ -1,44 +1,41 @@
 package Model;
 
 public class HTMLObject {
-    private final Object[][] arr;
-    private Boolean header = false, index = false;
+    private final String[][] arr;
+    private final Boolean header, index;
 
-    public HTMLObject(Object[][] input, Boolean... flag) {
-        if (input == null)
-            throw new IllegalArgumentException("Cannot passing a null array at input");
+    public HTMLObject(String[][] input, Boolean... flag) {
+//        if (input == null)
+//            throw new IllegalArgumentException("Invalid input, it must be a MxN array");
         this.arr = input;
-        try {
-            header = flag[0];
-            index = flag[1];
-        } catch (IndexOutOfBoundsException ignored) {
-        }
+        header = flag[0];
+        index = flag[1];
     }
 
     public String toTable() {
-        StringBuilder table = new StringBuilder("<table>");
+        StringBuilder table = new StringBuilder("<table>\n");
         if (header) {
-            StringBuilder head = new StringBuilder("<thead><tr>");
+            StringBuilder head = new StringBuilder("    <thead>\n        <tr>\n");
             if (index)
-                head.append("<th></th>");
+                head.append("            <th></th>\n");
             for (Object item : arr[0])
-                head.append("<th>").append(item != null ? String.valueOf(item) : "").append("</th>");
-            head.append("</tr></thead>");
+                head.append("            <th>").append(item != null ? item : "").append("</th>\n");
+            head.append("        </tr>\n    </thead>\n");
             table.append(head);
         }
-        StringBuilder body = new StringBuilder("<tbody>");
+        StringBuilder body = new StringBuilder("    <tbody>\n");
         int base_index = 1;
         int start_index = (header ? 1 : 0);
         for (int i = start_index; i < arr.length; i++) {
-            StringBuilder row = new StringBuilder("<tr>");
+            StringBuilder row = new StringBuilder("        <tr>\n");
             if (index)
-                row.append("<td>").append(base_index++).append("</td>");
+                row.append("            <td>").append(base_index++).append("</td>\n");
             for (Object item : arr[i])
-                row.append("<td>").append(item != null ? String.valueOf(item) : "").append("</td>");
-            row.append("</tr>");
+                row.append("            <td>").append(item != null ? item : "").append("</td>\n");
+            row.append("        </tr>\n");
             body.append(row);
         }
-        body.append("</tbody>");
+        body.append("    </tbody>\n");
         table.append(body).append("</table>");
 
         return table.toString();

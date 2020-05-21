@@ -7,6 +7,7 @@ public class View extends JFrame {
     private JTextArea inputTA, outputTA;
     private JButton runBtn;
     private JMenuItem exitMenu, aboutMenu;
+    private JCheckBox headerCB, indexCB;
 
     public View() {
         this.setTitle("ArrayToHTMLTable");
@@ -32,6 +33,8 @@ public class View extends JFrame {
         panel1.add(inputTA, BorderLayout.CENTER);
 
         JPanel panel1_1 = new JPanel(new GridBagLayout());
+        headerCB = new JCheckBox("True");
+        indexCB = new JCheckBox("True");
         GridBagConstraints gc = new GridBagConstraints();
         gc.anchor = GridBagConstraints.WEST;
         gc.insets = new Insets(5, 2, 5, 5);
@@ -39,13 +42,13 @@ public class View extends JFrame {
         gc.gridy = 0;
         panel1_1.add(new JLabel("Header"), gc);
         gc.gridx++;
-        panel1_1.add(new JCheckBox("True"), gc);
+        panel1_1.add(headerCB, gc);
         gc.gridx = 0;
         gc.gridy++;
         panel1_1.add(new JLabel("Index"), gc);
         gc.gridx++;
         gc.weightx = 8;
-        panel1_1.add(new JCheckBox("True"), gc);
+        panel1_1.add(indexCB, gc);
         panel1.add(panel1_1, BorderLayout.SOUTH);
         mainPanel.add(panel1);
 
@@ -90,6 +93,14 @@ public class View extends JFrame {
     public void setOutput(String output) {
         if (output != null)
             this.outputTA.setText(output);
+    }
+
+    public boolean getHeader() {
+        return this.headerCB.isSelected();
+    }
+
+    public boolean getIndex() {
+        return this.indexCB.isSelected();
     }
 
     public JButton getRunBtn() {
