@@ -6,12 +6,12 @@ import java.awt.*;
 public class View extends JFrame {
     private JTextArea inputTA, outputTA;
     private JButton runBtn;
-    private JMenuItem exitMenu, aboutMenu, gettingStarted;
+    private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult;
     private JCheckBox headerCB, indexCB;
 
     public View() {
         this.setTitle("ArrayToHTMLTable");
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         this.setSize(500, 500);
         this.setLocationRelativeTo(null);
 
@@ -75,6 +75,8 @@ public class View extends JFrame {
 
         JMenu fileMenu = new JMenu("File");
         exitMenu = new JMenuItem("Exit");
+        exportResult = new JMenuItem("Export...");
+        fileMenu.add(exportResult);
         fileMenu.add(exitMenu);
 
         JMenu helpMenu = new JMenu("Help");
@@ -89,8 +91,13 @@ public class View extends JFrame {
         this.setJMenuBar(menuBar);
     }
 
+
     public String getInput() {
         return this.inputTA.getText();
+    }
+
+    public String getOutput() {
+        return this.outputTA.getText();
     }
 
     public void setOutput(String output) {
@@ -120,5 +127,9 @@ public class View extends JFrame {
 
     public JMenuItem getGettingStartedMenu() {
         return gettingStarted;
+    }
+
+    public JMenuItem getExportResult() {
+        return exportResult;
     }
 }
