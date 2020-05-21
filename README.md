@@ -42,5 +42,4 @@ HTML table is structured like this:
 
 <p>For your convenience, there is a preloaded function <code>esc_html</code>/<code>escHtml</code> that takes a string with HTML tags and escape them; it is necessary if you want to use <code>print</code>/<code>console.log</code> on your resulting strings, elsewise Codewars processes HTML tags, so they appear invisible in the stdout.</p>
 <p>Test cases will always provide valid data, that is - up to three arguments, first a NxM array (list) with N and M &gt; 0, second and third a boolean. The values in the array will always be either <code>string</code>, <code>number</code>, <code>bool</code> or <code>None</code>/<code>null</code>.</p>
-<p>For more examples, see test cases.</p>
-<p>P.S.: I understand, that with larger inputs checking for mismatches in the expected and actual output can be cumbersome, but as of now I can hardly come up with something that would make this easier. Any ideas would be helpful!</p>
+
