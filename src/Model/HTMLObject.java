@@ -41,4 +41,15 @@ public class HTMLObject {
         return table.toString();
     }
 
+    public String[][] getArr() {
+        return arr;
+    }
+
+    public Boolean getHeader() {
+        return header;
+    }
+
+    public Boolean getIndex() {
+        return index;
+    }
 }
