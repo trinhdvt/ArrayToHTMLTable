@@ -1,5 +1,6 @@
 package Controller;
 
+import Model.Database;
 import Model.HTMLObject;
 import View.View;
 
@@ -10,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -17,6 +19,7 @@ import java.util.Set;
 
 public class Controller {
     private final View view;
+    private final Database database = Database.getInstance();
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
     private HTMLObject myObject = null;
@@ -29,15 +32,7 @@ public class Controller {
     public void initController() {
         initWindowListener();
         initMenuAction();
-        view.getRunBtn().addActionListener(l -> {
-            String input = view.getInput().trim();
-            boolean header = view.getHeader();
-            boolean index = view.getIndex();
-            if ("".equals(input))
-                return;
-            myObject = new HTMLObject(preProcessInput(input), header, index);
-            view.setOutput(myObject.toTable());
-        });
+        initButtonListener();
     }
 
     private void initMenuAction() {
@@ -47,9 +42,8 @@ public class Controller {
         view.getGettingStartedMenu().addActionListener(l -> {
             File doc = new File("src/Doc.txt");
             String absPath = doc.getAbsolutePath();
-            ProcessBuilder pb = new ProcessBuilder("Notepad.exe", absPath);
             try {
-                pb.start();
+                new ProcessBuilder("Notepad.exe", absPath).start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -93,6 +87,30 @@ public class Controller {
         });
     }
 
+    private void initButtonListener() {
+        view.getRunBtn().addActionListener(l -> {
+            String input = view.getInput().trim();
+            boolean header = view.getHeader();
+            boolean index = view.getIndex();
+            if ("".equals(input))
+                return;
+            myObject = new HTMLObject(preProcessInput(input),
+                    Calendar.getInstance().getTime().toString(),
+                    header, index);
+            view.setOutput(myObject.getTable());
+        });
+        view.getSaveBtn().addActionListener(l -> {
+            createLocalDB();
+            try {
+                database.connect();
+                database.disconnect();
+            } catch (ClassNotFoundException | SQLException e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+
     private void exportDataToFile(File file) throws IOException {
         String input = view.getInput().trim();
         String output = view.getOutput().trim();
@@ -109,7 +127,7 @@ public class Controller {
             bw.write("Header: " + myObject.getHeader() + "\n");
             bw.write("Index: " + myObject.getIndex() + "\n");
             bw.write("* Output:\n");
-            bw.write(view.getOutput());
+            bw.write(myObject.getTable());
         }
     }
 
@@ -126,5 +144,15 @@ public class Controller {
             }
         }
         return arr;
+    }
+
+    private void createLocalDB() {
+        String appPath = System.getProperty("user.dir");
+        String dbName = "Local";
+        try {
+            Runtime.getRuntime().exec(String.format("cmd /c cd %s & md %s & attrib +h %s", appPath, dbName, dbName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
