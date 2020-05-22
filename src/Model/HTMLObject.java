@@ -3,16 +3,18 @@ package Model;
 public class HTMLObject {
     private final String[][] arr;
     private final Boolean header, index;
+    private final String table;
+    private final String time;
 
-    public HTMLObject(String[][] input, Boolean... flag) {
-//        if (input == null)
-//            throw new IllegalArgumentException("Invalid input, it must be a MxN array");
+    public HTMLObject(String[][] input, String time, Boolean... flag) {
         this.arr = input;
-        header = flag[0];
-        index = flag[1];
+        this.header = flag[0];
+        this.index = flag[1];
+        this.time = time;
+        this.table = this.toTable();
     }
 
-    public String toTable() {
+    private String toTable() {
         StringBuilder table = new StringBuilder("<table>\n");
         if (header) {
             StringBuilder head = new StringBuilder("    <thead>\n        <tr>\n");
@@ -39,6 +41,14 @@ public class HTMLObject {
         table.append(body).append("</table>");
 
         return table.toString();
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    public String getTime() {
+        return time;
     }
 
     public String[][] getArr() {
