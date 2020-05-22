@@ -5,7 +5,7 @@ import java.awt.*;
 
 public class View extends JFrame {
     private JTextArea inputTA, outputTA;
-    private JButton runBtn;
+    private JButton runBtn, saveBtn, saveAsBtn;
     private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult;
     private JCheckBox headerCB, indexCB;
 
@@ -64,7 +64,11 @@ public class View extends JFrame {
         JPanel commandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         commandPanel.setBorder(BorderFactory.createTitledBorder("Command"));
         runBtn = new JButton("Run");
+        saveBtn = new JButton("Save");
+        saveAsBtn = new JButton("Save as");
         commandPanel.add(runBtn);
+        commandPanel.add(saveBtn);
+        commandPanel.add(saveAsBtn);
 
         this.getContentPane().add(mainPanel, BorderLayout.CENTER);
         this.getContentPane().add(commandPanel, BorderLayout.SOUTH);
@@ -131,5 +135,13 @@ public class View extends JFrame {
 
     public JMenuItem getExportResult() {
         return exportResult;
+    }
+
+    public JButton getSaveBtn() {
+        return saveBtn;
+    }
+
+    public JButton getSaveAsBtn() {
+        return saveAsBtn;
     }
 }
