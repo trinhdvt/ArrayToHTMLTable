@@ -38,8 +38,5 @@ HTML table is structured like this:
 <pre><code class="language-python"><span class="cm-string">"&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;lorem&lt;/th&gt;&lt;th&gt;ipsum&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;dolor&lt;/td&gt;&lt;td&gt;sit amet&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;"</span></code></pre>
 <p>As you can see, no linebreaks or whitespaces (except for the ones present in the array values) are included, so the HTML code is minified.</p>
 <p><b><u>IMPORTANT NOTE:</u></b> if the value in the array happens to be <code>None</code>, the value of the according cell in the table should be en ampty string (<code>""</code>)! Otherwise, just use a string representation of the given value, so, dependent on the language, the output can be slightly different. No additional parsing is needed on the data.</p>
-<h2 class="header">Additional info</h2>
 
-<p>For your convenience, there is a preloaded function <code>esc_html</code>/<code>escHtml</code> that takes a string with HTML tags and escape them; it is necessary if you want to use <code>print</code>/<code>console.log</code> on your resulting strings, elsewise Codewars processes HTML tags, so they appear invisible in the stdout.</p>
-<p>Test cases will always provide valid data, that is - up to three arguments, first a NxM array (list) with N and M &gt; 0, second and third a boolean. The values in the array will always be either <code>string</code>, <code>number</code>, <code>bool</code> or <code>None</code>/<code>null</code>.</p>
 
