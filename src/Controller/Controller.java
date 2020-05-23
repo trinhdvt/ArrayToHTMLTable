@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -69,6 +70,10 @@ public class Controller {
         view.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                try {
+                    database.disconnect();
+                } catch (SQLException ignored) {
+                }
                 int res;
                 final Set<Thread> threads = Thread.getAllStackTraces().keySet();
                 if (threads.stream().filter(t -> myThreadId.contains(t.getId())).toArray().length > 0) {
@@ -84,30 +89,49 @@ public class Controller {
                     view.dispose();
                 }
             }
+
+            @Override
+            public void windowOpened(WindowEvent e) {
+                Thread t = new Thread(() -> {
+                    try {
+                        database.connect();
+                    } catch (ClassNotFoundException | SQLException exception) {
+                        JOptionPane.showMessageDialog(view,
+                                "Cannot connect DB " + exception.getMessage(),
+                                "Connect DB error!", JOptionPane.ERROR_MESSAGE);
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException ignore) {
+                        }
+                        view.dispose();
+                    }
+                });
+                t.start();
+                myThreadId.add(t.getId());
+            }
         });
     }
 
     private void initButtonListener() {
         view.getRunBtn().addActionListener(l -> {
-            String input = view.getInput().trim();
+            String rawInput = view.getInput().trim();
             boolean header = view.getHeader();
             boolean index = view.getIndex();
-            if ("".equals(input))
+            if ("".equals(rawInput))
                 return;
-            myObject = new HTMLObject(preProcessInput(input),
-                    Calendar.getInstance().getTime().toString(),
-                    header, index);
+            String[][] input = preProcessInput(rawInput);
+            String date = new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
+            myObject = new HTMLObject(input, new boolean[]{header, index}, date);
             view.setOutput(myObject.getTable());
         });
         view.getSaveBtn().addActionListener(l -> {
-            createLocalDB();
             try {
-                database.connect();
-                database.disconnect();
-            } catch (ClassNotFoundException | SQLException e) {
-                e.printStackTrace();
+                if (myObject != null)
+                    database.saveToDB(myObject.getID(), formatRawInput(), myObject.getTable(), myObject.getDate());
+            } catch (SQLException ignored) {
+                JOptionPane.showMessageDialog(view, "Cannot save data",
+                        "Save data error!", JOptionPane.ERROR_MESSAGE);
             }
-
         });
     }
 
@@ -131,8 +155,8 @@ public class Controller {
         }
     }
 
-    private String[][] preProcessInput(String input) {
-        String[] rows = input.split("\n");
+    private String[][] preProcessInput(String rawInput) {
+        String[] rows = rawInput.split("\n");
         String[][] arr = new String[rows.length][];
         for (int i = 0; i < rows.length; i++) {
             String row = rows[i];
@@ -146,13 +170,10 @@ public class Controller {
         return arr;
     }
 
-    private void createLocalDB() {
-        String appPath = System.getProperty("user.dir");
-        String dbName = "Local";
-        try {
-            Runtime.getRuntime().exec(String.format("cmd /c cd %s & md %s & attrib +h %s", appPath, dbName, dbName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private String formatRawInput() {
+        StringBuilder sb = new StringBuilder(Arrays.deepToString(myObject.getArr()));
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append(", ").append(myObject.getHeader()).append(", ").append(myObject.getIndex()).append("]");
+        return sb.toString();
     }
 }
