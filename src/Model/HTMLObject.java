@@ -1,17 +1,20 @@
 package Model;
 
 public class HTMLObject {
+    public static int count = 1;
     private final String[][] arr;
     private final Boolean header, index;
     private final String table;
-    private final String time;
+    private final String date;
+    private final int ID;
 
-    public HTMLObject(String[][] input, String time, Boolean... flag) {
+    public HTMLObject(String[][] input, boolean[] flag, String date) {
         this.arr = input;
         this.header = flag[0];
         this.index = flag[1];
-        this.time = time;
+        this.date = date;
         this.table = this.toTable();
+        this.ID = count++;
     }
 
     private String toTable() {
@@ -47,8 +50,8 @@ public class HTMLObject {
         return table;
     }
 
-    public String getTime() {
-        return time;
+    public String getDate() {
+        return date;
     }
 
     public String[][] getArr() {
@@ -61,5 +64,9 @@ public class HTMLObject {
 
     public Boolean getIndex() {
         return index;
+    }
+
+    public int getID() {
+        return ID;
     }
 }
