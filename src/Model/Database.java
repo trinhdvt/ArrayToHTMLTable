@@ -9,7 +9,7 @@ public class Database {
     private static final String DB_NAME = "ArrayToHTMLTable";
     private static volatile Database instance = null;
     private Connection cnn = null;
-    private boolean isDBExist = false;
+
 
     private Database() {
         if (instance != null)
@@ -34,54 +34,32 @@ public class Database {
         }
     }
 
-/*    public void getCatalogs() throws SQLException {
-        if (cnn != null) {
-            try (ResultSet rs = cnn.getMetaData().getCatalogs()) {
-                while (rs.next()) {
-                    System.out.println(rs.getString(1));
-                }
-            }
-        }
-    }*/
-
     private void createDatabase() throws SQLException {
-
-/*        assert cnn != null;
-        try (ResultSet rs = cnn.getMetaData().getCatalogs()) {
-            while (rs.next()) {
-                String catalogs = rs.getString(1);
-                if (dbName.equals(catalogs))
-                    return;
-            }
-        }*/
-        assert !isDBExist;
         assert cnn != null;
-        try (Statement stm = cnn.createStatement()) {
-            /*String sql = "use master\n" +
-                    "go\n" +
-                    "\n" +
-                    "create database " + DB_NAME + "\n" +
-                    "go\n" +
-                    "\n" +
-                    "use ArrayToHTMLTable\n" +
-                    "go\n" +
-                    "\n" +
-                    "create table Log\n" +
-                    "(\n" +
-                    "[INPUT] nvarchar(100) not null,\n" +
-                    "[OUTPUT] nvarchar(100) not null,\n" +
-                    "[TIME] varchar(50) not null,\n" +
-                    "constraint Log_pk\n" +
-                    "primary key nonclustered ([INPUT], [OUTPUT], [TIME])\n" +
-                    ")\n" +
-                    "go\n";*/
-//            System.out.println(sql);
-//            stm.executeUpdate(sql);
+        Statement stm = null;
+        try {
+            stm = cnn.createStatement();
+            String sql = "create database " + DB_NAME;
+            stm.executeUpdate(sql);
+            sql = "use " + DB_NAME +
+                    ";create table Log (" +
+                    "[input] nvarchar(1000) primary key," +
+                    "[output] nvarchar(1000) not null," +
+                    "[time] nvarchar(20) not null " +
+                    ")";
+            stm.executeUpdate(sql);
+        } catch (SQLException ignored) {
+            assert stm != null;
+            stm.execute("use " + DB_NAME);
+        } finally {
+            assert stm != null;
+            stm.close();
         }
-        isDBExist = true;
+
     }
 
     public void disconnect() throws SQLException {
+        assert cnn != null;
         this.cnn.close();
     }
 }
