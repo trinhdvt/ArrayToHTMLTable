@@ -46,8 +46,7 @@ public class Database {
             stm.executeUpdate(sql);
             sql = "use " + DB_NAME +
                     ";create table Log ( " +
-                    "[id] int primary key," +
-                    "[input] nvarchar(1000) not null," +
+                    "[input] nvarchar(1000) primary key," +
                     "[output] nvarchar(1000) not null," +
                     "[time] nvarchar(20) not null " +
                     ")";
@@ -62,6 +61,34 @@ public class Database {
 
     }
 
+    public void saveToDB(HTMLObject object) throws SQLException {
+        if (cnn == null) return;
+        if (isDataExist(object))
+            updateDB(object);
+        else
+            insertToDB(object);
+
+    }
+
+    private boolean isDataExist(HTMLObject object) {
+        return false;
+    }
+
+    private void updateDB(HTMLObject object) {
+
+    }
+
+    private void insertToDB(HTMLObject object) throws SQLException {
+        String insertSql = "insert into Log(input, output ,time ) values (?,?,?)";
+        PreparedStatement insertStm = cnn.prepareStatement(insertSql);
+        int index = 1;
+        Object[] insertValue = object.getWritableData();
+        insertStm.setString(index++, String.valueOf(insertValue[0]));
+        insertStm.setString(index++, String.valueOf(insertValue[1]));
+        insertStm.setString(index, String.valueOf(insertValue[2]));
+        insertStm.executeUpdate();
+        insertStm.close();
+    }
 /*
     private void createLocalDB() throws IOException {
         String appPath = System.getenv("APPDATA");
@@ -70,15 +97,4 @@ public class Database {
     }
 */
 
-    public void saveToDB(int id, String input, String output, String time) throws SQLException {
-        if (cnn == null) return;
-        String insertSql = "insert into Log(id, input, output, time) values (?,?,?,?)";
-        PreparedStatement insertStm = cnn.prepareStatement(insertSql);
-        insertStm.setInt(1, id);
-        insertStm.setString(2, input);
-        insertStm.setString(3, output);
-        insertStm.setString(4, time);
-        insertStm.executeUpdate();
-        insertStm.close();
-    }
 }
