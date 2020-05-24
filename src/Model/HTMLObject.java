@@ -1,12 +1,16 @@
 package Model;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import java.util.Arrays;
+
 public class HTMLObject {
-    public static int count = 1;
     private final String[][] arr;
     private final Boolean header, index;
     private final String table;
     private final String date;
-    private final int ID;
 
     public HTMLObject(String[][] input, boolean[] flag, String date) {
         this.arr = input;
@@ -14,7 +18,6 @@ public class HTMLObject {
         this.index = flag[1];
         this.date = date;
         this.table = this.toTable();
-        this.ID = count++;
     }
 
     private String toTable() {
@@ -50,23 +53,30 @@ public class HTMLObject {
         return table;
     }
 
-    public String getDate() {
-        return date;
+    public Object[] getWritableData() {
+        Gson gson = new Gson();
+        String json = gson.toJson(this);
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        JsonElement arr = jsonObject.get("arr");
+        boolean header = jsonObject.get("header").getAsBoolean();
+        boolean index = jsonObject.get("index").getAsBoolean();
+        String table = jsonObject.get("table").getAsString();
+        JsonElement date = jsonObject.get("date");
+        return new Object[]{arr.toString() + ";" + header + ";" + index, table, date.toString()};
     }
 
-    public String[][] getArr() {
-        return arr;
+    public String getJsonString() {
+        return new Gson().toJson(this);
     }
 
-    public Boolean getHeader() {
-        return header;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HTMLObject that = (HTMLObject) o;
+        return Arrays.equals(arr, that.arr) &&
+                header.equals(that.header) &&
+                index.equals(that.index);
     }
 
-    public Boolean getIndex() {
-        return index;
-    }
-
-    public int getID() {
-        return ID;
-    }
 }
