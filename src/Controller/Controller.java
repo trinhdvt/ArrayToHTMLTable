@@ -13,7 +13,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -127,31 +126,25 @@ public class Controller {
         view.getSaveBtn().addActionListener(l -> {
             try {
                 if (myObject != null)
-                    database.saveToDB(myObject.getID(), formatRawInput(), myObject.getTable(), myObject.getDate());
+                    database.saveToDB(myObject);
             } catch (SQLException ignored) {
                 JOptionPane.showMessageDialog(view, "Cannot save data",
                         "Save data error!", JOptionPane.ERROR_MESSAGE);
             }
         });
+        view.getSaveAsBtn().addActionListener(l -> {
+
+        });
     }
 
     private void exportDataToFile(File file) throws IOException {
-        String input = view.getInput().trim();
-        String output = view.getOutput().trim();
-        if (input.isEmpty() || output.isEmpty()) {
+        if (myObject == null) {
             JOptionPane.showMessageDialog(view, "Nothing to export",
                     "Export information", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            bw.write("* Time: ");
-            bw.write(Calendar.getInstance().getTime().toString() + "\n");
-            bw.write("* Input:\n");
-            bw.write("Array: " + Arrays.deepToString(myObject.getArr()) + "\n");
-            bw.write("Header: " + myObject.getHeader() + "\n");
-            bw.write("Index: " + myObject.getIndex() + "\n");
-            bw.write("* Output:\n");
-            bw.write(myObject.getTable());
+            bw.write(myObject.getJsonString());
         }
     }
 
@@ -170,10 +163,4 @@ public class Controller {
         return arr;
     }
 
-    private String formatRawInput() {
-        StringBuilder sb = new StringBuilder(Arrays.deepToString(myObject.getArr()));
-        sb.deleteCharAt(sb.length() - 1);
-        sb.append(", ").append(myObject.getHeader()).append(", ").append(myObject.getIndex()).append("]");
-        return sb.toString();
-    }
 }
