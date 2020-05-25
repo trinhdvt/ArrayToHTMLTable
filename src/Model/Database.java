@@ -7,13 +7,14 @@ import java.util.List;
 public class Database {
     private static final String DB_NAME = "ArrayToHTMLTable";
     private static volatile Database instance = null;
-    private final List<HTMLObject> myObjects = new ArrayList<>();
+    private final List<HTMLObject> myObjects;
     private Connection cnn = null;
     //    private static String LOCAL_DB_PATH = null;
 
     private Database() {
         if (instance != null)
             throw new RuntimeException("Use getInstance method instead");
+        myObjects = new ArrayList<>();
     }
 
     public static Database getInstance() {
@@ -49,9 +50,10 @@ public class Database {
             stm.executeUpdate(sql);
             sql = "use " + DB_NAME +
                     ";create table Log ( " +
+                    "[id] int identity (1,1), " +
                     "[input] nvarchar(1000) primary key," +
                     "[output] nvarchar(1000) not null," +
-                    "[time] nvarchar(20) not null " +
+                    "[date] nvarchar(20) not null " +
                     ")";
             stm.executeUpdate(sql);
         } catch (SQLException ignored) {
@@ -64,13 +66,30 @@ public class Database {
 
     }
 
+    public void loadDB() throws SQLException {
+        if (cnn == null) return;
+        myObjects.clear();
+        String selectQuery = "select [id], [input], [output], [date] from Log order by [id]";
+        Statement selectStm = cnn.createStatement();
+        ResultSet resultSet = selectStm.executeQuery(selectQuery);
+        while (resultSet.next()) {
+            int id = resultSet.getInt(1);
+            String input = resultSet.getString(2);
+            String output = resultSet.getString(3);
+            String date = resultSet.getString(4);
+            myObjects.add(HTMLObject.createObjectFromProperty(id, input, output, date));
+        }
+        HTMLObject.count = myObjects.size() + 1;
+        resultSet.close();
+        selectStm.close();
+    }
+
     public void saveToDB(HTMLObject object) throws SQLException {
         if (cnn == null) return;
         if (isDataExist(object))
             updateDB(object);
         else
             insertToDB(object);
-
     }
 
     private boolean isDataExist(HTMLObject object) throws SQLException {
@@ -79,16 +98,27 @@ public class Database {
         selectStm.setInt(1, object.getId());
         ResultSet selectResult = selectStm.executeQuery();
         selectResult.next();
-        return selectResult.getInt(1) != 0;
+        boolean res = selectResult.getInt(1) != 0;
+        selectStm.close();
+        selectResult.close();
+        return res;
     }
 
     private void updateDB(HTMLObject object) throws SQLException {
-        String updateQuery = "update Log where ";
+        String updateQuery = "update Log set [input] = ?, [output] = ?, [date] = ? where [id] = ?";
         PreparedStatement updateStm = cnn.prepareStatement(updateQuery);
+        int index = 1;
+        Object[] value = object.getWritableData();
+        updateStm.setString(index++, String.valueOf(value[0]));
+        updateStm.setString(index++, String.valueOf(value[1]));
+        updateStm.setString(index++, String.valueOf(value[2]));
+        updateStm.setInt(index, object.getId());
+        updateStm.executeUpdate();
+        updateStm.close();
     }
 
     private void insertToDB(HTMLObject object) throws SQLException {
-        String insertSql = "insert into Log(input, output ,time ) values (?,?,?)";
+        String insertSql = "insert into Log([input], [output] ,[date]) values (?,?,?)";
         PreparedStatement insertStm = cnn.prepareStatement(insertSql);
         int index = 1;
         Object[] insertValue = object.getWritableData();
@@ -99,22 +129,10 @@ public class Database {
         insertStm.close();
     }
 
-    public HTMLObject existObject(HTMLObject object) {
-        for (HTMLObject object1 : myObjects) {
-            if (object1.equals(object)) {
-                return object1;
-            }
-        }
-        return null;
-    }
-
-    public HTMLObject findByID(HTMLObject object) {
-//        return myObjects.stream().filter(object1 -> object1.getId() == object.getId()).findFirst().orElse(null);
-//        int length = myObjects.size();
-        for (HTMLObject myObject : myObjects) {
-            if (myObject.getId() == object.getId())
+    public HTMLObject findByID(int id) {
+        for (HTMLObject myObject : myObjects)
+            if (myObject.getId() == id)
                 return myObject;
-        }
         return null;
     }
 
@@ -123,13 +141,7 @@ public class Database {
     }
 
     public void deleteObject(int id) {
-        int length = myObjects.size();
-        for (int i = 0; i < length; i++) {
-            if (myObjects.get(i).getId() == id) {
-                myObjects.remove(i);
-                return;
-            }
-        }
+        myObjects.removeIf(object -> object.getId() == id);
     }
 
     public List<HTMLObject> getMyObjects() {
