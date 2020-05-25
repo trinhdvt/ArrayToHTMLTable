@@ -4,7 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class HTMLObject {
+public class HTMLObject implements Comparable<HTMLObject> {
+    private static final transient Gson gson = new Gson();
     public static int count = 1;
     private final String[][] arr;
     private final Boolean header, index;
@@ -18,6 +19,20 @@ public class HTMLObject {
         this.index = flag[1];
         this.date = date;
         this.table = this.toTable();
+    }
+
+    public static HTMLObject createObjectFromProperty(int id, String input, String output, String date) {
+        String[] tmp = input.split(", ");
+        String arr = "\"arr\":" + tmp[0];
+        String header = "\"header\":" + tmp[1];
+        String index = "\"index\":" + tmp[2];
+        String table = "\"table\":" + "\"" + output + "\"";
+        date = "\"date\":" + date;
+        String[] properties = new String[]{arr, header, index, table, date};
+        final String json = "{" + String.join(",", properties) + "}";
+        HTMLObject object = gson.fromJson(json, HTMLObject.class);
+        object.setId(id);
+        return object;
     }
 
     private String toTable() {
@@ -54,7 +69,6 @@ public class HTMLObject {
     }
 
     public Object[] getWritableData() {
-        Gson gson = new Gson();
         String json = gson.toJson(this);
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         JsonElement arr = jsonObject.get("arr");
@@ -62,11 +76,11 @@ public class HTMLObject {
         boolean index = jsonObject.get("index").getAsBoolean();
         String table = jsonObject.get("table").getAsString();
         JsonElement date = jsonObject.get("date");
-        return new Object[]{arr.toString() + ";" + header + ";" + index, table, date.toString()};
+        return new Object[]{arr.toString() + ", " + header + ", " + index, table, date.toString()};
     }
 
     public String getJsonString() {
-        return new Gson().toJson(this);
+        return gson.toJson(this);
     }
 
     public int getId() {
@@ -77,6 +91,10 @@ public class HTMLObject {
         this.id = id;
     }
 
+    public String getDate() {
+        return date;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -85,4 +103,9 @@ public class HTMLObject {
         return table.equals(that.table);
     }
 
+
+    @Override
+    public int compareTo(HTMLObject o) {
+        return Integer.compare(this.id, o.id);
+    }
 }
