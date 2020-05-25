@@ -4,10 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 
 public class View extends JFrame {
+
     private JTextArea inputTA, outputTA;
-    private JButton runBtn, saveBtn, saveAsBtn;
+    private JButton runBtn;
+    private JButton saveBtn;
     private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult;
     private JCheckBox headerCB, indexCB;
+    private JTabbedPane tabPane;
+    private JTable table;
 
     public View() {
         this.setTitle("ArrayToHTMLTable");
@@ -22,7 +26,16 @@ public class View extends JFrame {
     }
 
     private void initComponents() {
-        this.setLayout(new BorderLayout());
+        tabPane = new JTabbedPane();
+        tabPane.addTab("Workspace", createMainTabPanel());
+        tabPane.addTab("History", createHistoryPanel());
+        this.getContentPane().add(tabPane);
+    }
+
+    private JPanel createMainTabPanel() {
+        JPanel tabPanel1 = new JPanel();
+
+        tabPanel1.setLayout(new BorderLayout());
         JPanel mainPanel = new JPanel(new GridLayout(2, 1));
 
         JPanel panel1 = new JPanel(new BorderLayout(5, 5));
@@ -65,13 +78,19 @@ public class View extends JFrame {
         commandPanel.setBorder(BorderFactory.createTitledBorder("Command"));
         runBtn = new JButton("Run");
         saveBtn = new JButton("Save");
-        saveAsBtn = new JButton("Save as");
         commandPanel.add(runBtn);
         commandPanel.add(saveBtn);
-        commandPanel.add(saveAsBtn);
 
-        this.getContentPane().add(mainPanel, BorderLayout.CENTER);
-        this.getContentPane().add(commandPanel, BorderLayout.SOUTH);
+        tabPanel1.add(mainPanel, BorderLayout.CENTER);
+        tabPanel1.add(commandPanel, BorderLayout.SOUTH);
+        return tabPanel1;
+    }
+
+    private JPanel createHistoryPanel() {
+        table = new JTable();
+        JPanel historyPanel = new JPanel(new BorderLayout());
+        historyPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+        return historyPanel;
     }
 
     private void createMenuBar() {
@@ -95,13 +114,8 @@ public class View extends JFrame {
         this.setJMenuBar(menuBar);
     }
 
-
     public String getInput() {
         return this.inputTA.getText();
-    }
-
-    public String getOutput() {
-        return this.outputTA.getText();
     }
 
     public void setOutput(String output) {
@@ -141,7 +155,11 @@ public class View extends JFrame {
         return saveBtn;
     }
 
-    public JButton getSaveAsBtn() {
-        return saveAsBtn;
+    public JTable getHistoryTable() {
+        return table;
+    }
+
+    public JTabbedPane getTabPane() {
+        return tabPane;
     }
 }
