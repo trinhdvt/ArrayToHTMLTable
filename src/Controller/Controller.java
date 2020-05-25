@@ -2,9 +2,12 @@ package Controller;
 
 import Model.Database;
 import Model.HTMLObject;
+import Model.HTMLObjectTableModel;
 import View.View;
 
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
@@ -22,19 +25,32 @@ public class Controller {
     private final Database database = Database.getInstance();
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
-    private final HTMLObject editObject = null;
+    private final HTMLObjectTableModel model;
+    private HTMLObject editObject = null;
     private HTMLObject myObject = null;
     private boolean editMode = false;
 
-    public Controller(View view) {
+    public Controller(View view, HTMLObjectTableModel model) {
         this.view = view;
+        this.model = model;
+        initView();
+        initModel();
         initController();
     }
 
-    public void initController() {
+    private void initView() {
+        view.getHistoryTable().setModel(model);
+    }
+
+    private void initModel() {
+        model.setMyObjects(database.getMyObjects());
+    }
+
+    private void initController() {
         initWindowAction();
         initMenuAction();
         initButtonAction();
+        initTableAction();
     }
 
     private void initMenuAction() {
@@ -52,14 +68,7 @@ public class Controller {
         });
         view.getExportResult().addActionListener(l -> {
             if (fileChooser.showSaveDialog(view) == JFileChooser.APPROVE_OPTION) {
-                Thread t = new Thread(() -> {
-                    try {
-                        exportDataToFile(fileChooser.getSelectedFile());
-                    } catch (IOException e) {
-                        JOptionPane.showInputDialog(view, "Cannot export data",
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                });
+                Thread t = new Thread(() -> exportDataToFile(fileChooser.getSelectedFile()));
                 t.setName("Export Data");
                 myThreadId.add(t.getId());
                 t.start();
@@ -70,32 +79,12 @@ public class Controller {
     private void initWindowAction() {
         view.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) {
-                try {
-                    database.disconnect();
-                } catch (SQLException ignored) {
-                }
-                int res;
-                final Set<Thread> threads = Thread.getAllStackTraces().keySet();
-                if (threads.stream().anyMatch(t -> myThreadId.contains(t.getId()))) {
-                    res = JOptionPane.showConfirmDialog(view,
-                            "Something is running in background. Force to exit ?",
-                            null, JOptionPane.OK_CANCEL_OPTION);
-                    if (res == JOptionPane.CANCEL_OPTION)
-                        return;
-                } else
-                    res = JOptionPane.showConfirmDialog(view, "Do you want to exit!",
-                            "Exit Confirm", JOptionPane.OK_CANCEL_OPTION);
-                if (res == JOptionPane.OK_OPTION) {
-                    view.dispose();
-                }
-            }
-
-            @Override
             public void windowOpened(WindowEvent e) {
                 Thread t = new Thread(() -> {
                     try {
                         database.connect();
+                        database.loadDB();
+                        refreshHistoryTable();
                     } catch (ClassNotFoundException | SQLException exception) {
                         JOptionPane.showMessageDialog(view,
                                 "Cannot connect DB " + exception.getMessage(),
@@ -109,6 +98,28 @@ public class Controller {
                 });
                 t.start();
                 myThreadId.add(t.getId());
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int res;
+                final Set<Thread> threads = Thread.getAllStackTraces().keySet();
+                if (threads.stream().anyMatch(t -> myThreadId.contains(t.getId()))) {
+                    res = JOptionPane.showConfirmDialog(view,
+                            "Something is running in background. Force to exit ?",
+                            null, JOptionPane.OK_CANCEL_OPTION);
+                    if (res == JOptionPane.CANCEL_OPTION)
+                        return;
+                } else
+                    res = JOptionPane.showConfirmDialog(view, "Do you want to exit!",
+                            "Exit Confirm", JOptionPane.OK_CANCEL_OPTION);
+                if (res == JOptionPane.OK_OPTION) {
+                    try {
+                        database.disconnect();
+                    } catch (SQLException ignored) {
+                    }
+                    view.dispose();
+                }
             }
         });
     }
@@ -124,14 +135,6 @@ public class Controller {
             String date = new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
             myObject = new HTMLObject(input, new boolean[]{header, index}, date);
             view.setOutput(myObject.getTable());
-            /*HTMLObject existObject = database.existObject(myObject);
-            if (existObject != null) {
-                myObject = existObject;
-                view.setOutput(myObject.getTable());
-            } else {
-                database.addObject(myObject);
-                view.setOutput(myObject.getTable());
-            }*/
         });
 
         view.getSaveBtn().addActionListener(l -> {
@@ -143,25 +146,55 @@ public class Controller {
                 if (myObject != null) {
                     database.addObject(myObject);
                     database.saveToDB(myObject);
+                    refreshHistoryTable();
                 }
-            } catch (SQLException ignored) {
+            } catch (SQLException e) {
                 JOptionPane.showMessageDialog(view, "Cannot save data",
                         "Save data error!", JOptionPane.ERROR_MESSAGE);
+                System.out.println(e.getMessage());
             }
-        });
-        view.getSaveAsBtn().addActionListener(l -> {
-
         });
     }
 
-    private void exportDataToFile(File file) throws IOException {
+    private void initTableAction() {
+        view.getHistoryTable().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    JTable table = view.getHistoryTable();
+                    if (table.getSelectedRow() != -1) {
+                        int id = (int) model.getValueAt(table.getSelectedRow(), 0);
+                        editObject = database.findByID(id);
+                        editMode = true;
+                        view.getTabPane().setSelectedIndex(0);
+                    }
+                }
+            }
+        });
+    }
+
+    private void enterEditMode() {
+        myObject.setId(editObject.getId());
+        database.deleteObject(editObject.getId());
+        editMode = false;
+    }
+
+    private void refreshHistoryTable() {
+        model.fireTableDataChanged();
+    }
+
+    private void exportDataToFile(File file) {
         if (myObject == null) {
             JOptionPane.showMessageDialog(view, "Nothing to export",
                     "Export information", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+        try (FileWriter fw = new FileWriter(file);
+             BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(myObject.getJsonString());
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(view, e.getMessage(),
+                    "Errors occur", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -180,11 +213,5 @@ public class Controller {
         return arr;
     }
 
-    private void enterEditMode() {
-        assert editObject != null;
-        myObject.setId(editObject.getId());
-        database.deleteObject(editObject.getId());
-        editMode = false;
-    }
 
 }
