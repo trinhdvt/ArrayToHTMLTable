@@ -114,21 +114,20 @@ public class View extends JFrame {
         this.setJMenuBar(menuBar);
     }
 
-    public String getInput() {
-        return this.inputTA.getText();
+    public JTextArea getInput() {
+        return inputTA;
     }
 
-    public void setOutput(String output) {
-        if (output != null)
-            this.outputTA.setText(output);
+    public JTextArea getOutput() {
+        return outputTA;
     }
 
-    public boolean getHeader() {
-        return this.headerCB.isSelected();
+    public JCheckBox getHeader() {
+        return headerCB;
     }
 
-    public boolean getIndex() {
-        return this.indexCB.isSelected();
+    public JCheckBox getIndex() {
+        return indexCB;
     }
 
     public JButton getRunBtn() {

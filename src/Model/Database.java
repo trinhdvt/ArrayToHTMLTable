@@ -9,7 +9,6 @@ public class Database {
     private static volatile Database instance = null;
     private final List<HTMLObject> myObjects;
     private Connection cnn = null;
-    //    private static String LOCAL_DB_PATH = null;
 
     private Database() {
         if (instance != null)
@@ -147,12 +146,5 @@ public class Database {
     public List<HTMLObject> getMyObjects() {
         return myObjects;
     }
-    /*
-    private void createLocalDB() throws IOException {
-        String appPath = System.getenv("APPDATA");
-        Runtime.getRuntime().exec(String.format("cmd /c cd %s & md %s", appPath, DB_NAME));
-        LOCAL_DB_PATH = appPath + DB_NAME;
-    }
-*/
 
 }

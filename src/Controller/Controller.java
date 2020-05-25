@@ -126,15 +126,15 @@ public class Controller {
 
     private void initButtonAction() {
         view.getRunBtn().addActionListener(l -> {
-            String rawInput = view.getInput().trim();
-            boolean header = view.getHeader();
-            boolean index = view.getIndex();
+            String rawInput = view.getInput().getText().trim();
+            boolean header = view.getHeader().isSelected();
+            boolean index = view.getIndex().isSelected();
             if ("".equals(rawInput))
                 return;
             String[][] input = preProcessInput(rawInput);
             String date = new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
             myObject = new HTMLObject(input, new boolean[]{header, index}, date);
-            view.setOutput(myObject.getTable());
+            view.getOutput().setText(myObject.getTable());
         });
 
         view.getSaveBtn().addActionListener(l -> {
@@ -166,6 +166,10 @@ public class Controller {
                         int id = (int) model.getValueAt(table.getSelectedRow(), 0);
                         editObject = database.findByID(id);
                         editMode = true;
+                        view.getInput().setText(generateRawInput(editObject.getArr()));
+                        view.getHeader().setSelected(editObject.getHeader());
+                        view.getIndex().setSelected(editObject.getIndex());
+                        view.getOutput().setText(editObject.getTable());
                         view.getTabPane().setSelectedIndex(0);
                     }
                 }
@@ -213,5 +217,7 @@ public class Controller {
         return arr;
     }
 
-
+    private String generateRawInput(String[][] arr) {
+        return null;
+    }
 }

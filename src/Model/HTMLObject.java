@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class HTMLObject implements Comparable<HTMLObject> {
+public class HTMLObject {
     private static final transient Gson gson = new Gson();
     public static int count = 1;
     private final String[][] arr;
@@ -91,6 +91,18 @@ public class HTMLObject implements Comparable<HTMLObject> {
         this.id = id;
     }
 
+    public String[][] getArr() {
+        return arr;
+    }
+
+    public Boolean getHeader() {
+        return header;
+    }
+
+    public Boolean getIndex() {
+        return index;
+    }
+
     public String getDate() {
         return date;
     }
@@ -103,9 +115,4 @@ public class HTMLObject implements Comparable<HTMLObject> {
         return table.equals(that.table);
     }
 
-
-    @Override
-    public int compareTo(HTMLObject o) {
-        return Integer.compare(this.id, o.id);
-    }
 }
