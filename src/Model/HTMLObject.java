@@ -4,13 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.Arrays;
-
 public class HTMLObject {
+    public static int count = 1;
     private final String[][] arr;
     private final Boolean header, index;
     private final String table;
     private final String date;
+    private transient int id;
 
     public HTMLObject(String[][] input, boolean[] flag, String date) {
         this.arr = input;
@@ -69,14 +69,20 @@ public class HTMLObject {
         return new Gson().toJson(this);
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         HTMLObject that = (HTMLObject) o;
-        return Arrays.equals(arr, that.arr) &&
-                header.equals(that.header) &&
-                index.equals(that.index);
+        return table.equals(that.table);
     }
 
 }

@@ -22,7 +22,9 @@ public class Controller {
     private final Database database = Database.getInstance();
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
+    private final HTMLObject editObject = null;
     private HTMLObject myObject = null;
+    private boolean editMode = false;
 
     public Controller(View view) {
         this.view = view;
@@ -30,9 +32,9 @@ public class Controller {
     }
 
     public void initController() {
-        initWindowListener();
+        initWindowAction();
         initMenuAction();
-        initButtonListener();
+        initButtonAction();
     }
 
     private void initMenuAction() {
@@ -65,7 +67,7 @@ public class Controller {
         });
     }
 
-    private void initWindowListener() {
+    private void initWindowAction() {
         view.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -75,7 +77,7 @@ public class Controller {
                 }
                 int res;
                 final Set<Thread> threads = Thread.getAllStackTraces().keySet();
-                if (threads.stream().filter(t -> myThreadId.contains(t.getId())).toArray().length > 0) {
+                if (threads.stream().anyMatch(t -> myThreadId.contains(t.getId()))) {
                     res = JOptionPane.showConfirmDialog(view,
                             "Something is running in background. Force to exit ?",
                             null, JOptionPane.OK_CANCEL_OPTION);
@@ -111,7 +113,7 @@ public class Controller {
         });
     }
 
-    private void initButtonListener() {
+    private void initButtonAction() {
         view.getRunBtn().addActionListener(l -> {
             String rawInput = view.getInput().trim();
             boolean header = view.getHeader();
@@ -122,11 +124,26 @@ public class Controller {
             String date = new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
             myObject = new HTMLObject(input, new boolean[]{header, index}, date);
             view.setOutput(myObject.getTable());
+            /*HTMLObject existObject = database.existObject(myObject);
+            if (existObject != null) {
+                myObject = existObject;
+                view.setOutput(myObject.getTable());
+            } else {
+                database.addObject(myObject);
+                view.setOutput(myObject.getTable());
+            }*/
         });
+
         view.getSaveBtn().addActionListener(l -> {
+            if (editMode)
+                enterEditMode();
+            else
+                myObject.setId(HTMLObject.count++);
             try {
-                if (myObject != null)
+                if (myObject != null) {
+                    database.addObject(myObject);
                     database.saveToDB(myObject);
+                }
             } catch (SQLException ignored) {
                 JOptionPane.showMessageDialog(view, "Cannot save data",
                         "Save data error!", JOptionPane.ERROR_MESSAGE);
@@ -161,6 +178,13 @@ public class Controller {
             }
         }
         return arr;
+    }
+
+    private void enterEditMode() {
+        assert editObject != null;
+        myObject.setId(editObject.getId());
+        database.deleteObject(editObject.getId());
+        editMode = false;
     }
 
 }
