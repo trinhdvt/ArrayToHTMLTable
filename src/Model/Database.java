@@ -2,6 +2,7 @@ package Model;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Database {
@@ -27,10 +28,10 @@ public class Database {
     public void connect() throws ClassNotFoundException, SQLException {
         if (cnn == null) {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            final String DB_URL = "jdbc:sqlserver://localhost";
-            final String USER_NAME = "sa";
-            final String PASS_WORD = "illusion";
-            cnn = DriverManager.getConnection(DB_URL, USER_NAME, PASS_WORD);
+            final String DB_URL = "jdbc:sqlserver://localhost;integratedSecurity=true";
+//            final String USER_NAME = "sa";
+//            final String PASS_WORD = "illusion";
+            cnn = DriverManager.getConnection(DB_URL);
             createDB();
         }
     }
@@ -139,12 +140,31 @@ public class Database {
         this.myObjects.add(object);
     }
 
-    public void deleteObject(int id) {
-        myObjects.removeIf(object -> object.getId() == id);
+    public void replaceByID(HTMLObject newObject) {
+        int length = myObjects.size();
+        for (int i = 0; i < length; i++) {
+            if (myObjects.get(i).getId() == newObject.getId())
+                myObjects.set(i, newObject);
+        }
     }
 
     public List<HTMLObject> getMyObjects() {
-        return myObjects;
+        return Collections.unmodifiableList(myObjects);
     }
+
+/*
+    public boolean testConnection(int port, String user, String password) {
+        String url = "jdbc:sqlserver://localhost:" + port;
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            Connection testCnn = DriverManager.getConnection(url, user, password);
+            testCnn.close();
+            return true;
+        } catch (SQLException | ClassNotFoundException e) {
+            return false;
+        }
+
+    }
+*/
 
 }
