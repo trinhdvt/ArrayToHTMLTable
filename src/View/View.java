@@ -4,14 +4,13 @@ import javax.swing.*;
 import java.awt.*;
 
 public class View extends JFrame {
-
-    //    private final PrefsDialog prefsDialog;
     private JTextArea inputTA, outputTA;
     private JButton runBtn, saveBtn, clearBtn;
-    private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult, prefsMenu;
+    private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult, deleteRow, editRow;
     private JCheckBox headerCB, indexCB;
     private JTabbedPane tabPane;
     private JTable table;
+    private JPopupMenu popupMenu;
 
     public View() {
         this.setTitle("ArrayToHTMLTable");
@@ -22,7 +21,6 @@ public class View extends JFrame {
         initComponents();
         createMenuBar();
 
-//        prefsDialog = new PrefsDialog(View.this);
         this.setVisible(true);
     }
 
@@ -93,7 +91,16 @@ public class View extends JFrame {
         table = new JTable();
         JPanel historyPanel = new JPanel(new BorderLayout());
         historyPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+        initPopupMenu();
         return historyPanel;
+    }
+
+    private void initPopupMenu() {
+        popupMenu = new JPopupMenu();
+        deleteRow = new JMenuItem("Delete");
+        editRow = new JMenuItem("Edit");
+        popupMenu.add(editRow);
+        popupMenu.add(deleteRow);
     }
 
     private void createMenuBar() {
@@ -112,8 +119,8 @@ public class View extends JFrame {
         helpMenu.add(aboutMenu);
 
         JMenu windowMenu = new JMenu("Window");
-        prefsMenu = new JMenuItem("Preferences");
-        windowMenu.add(prefsMenu);
+/*        prefsMenu = new JMenuItem("Preferences");
+        windowMenu.add(prefsMenu);*/
 
         menuBar.add(fileMenu);
         menuBar.add(windowMenu);
@@ -174,13 +181,16 @@ public class View extends JFrame {
         return clearBtn;
     }
 
-/*
-    public PrefsDialog getPrefsDialog() {
-        return prefsDialog;
+    public JPopupMenu getPopupMenu() {
+        return popupMenu;
     }
 
-    public JMenuItem getPrefsMenu() {
-        return prefsMenu;
+    public JMenuItem getDeleteRow() {
+        return deleteRow;
     }
-*/
+
+    public JMenuItem getEditRow() {
+        return editRow;
+    }
+
 }

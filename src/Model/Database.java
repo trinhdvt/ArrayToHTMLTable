@@ -78,8 +78,9 @@ public class Database {
             String output = resultSet.getString(3);
             String date = resultSet.getString(4);
             myObjects.add(HTMLObject.createObjectFromProperty(id, input, output, date));
+            HTMLObject.ID_IDENTIFY = Math.max(HTMLObject.ID_IDENTIFY, id);
         }
-        HTMLObject.count = myObjects.size() + 1;
+        HTMLObject.ID_IDENTIFY++;
         resultSet.close();
         selectStm.close();
     }
@@ -129,6 +130,13 @@ public class Database {
         insertStm.close();
     }
 
+    private void deleteInDB(int id) throws SQLException {
+        String deleteQuery = "delete from Log where id = " + id;
+        Statement deleteStm = cnn.createStatement();
+        deleteStm.executeUpdate(deleteQuery);
+        deleteStm.close();
+    }
+
     public HTMLObject findByID(int id) {
         for (HTMLObject myObject : myObjects)
             if (myObject.getId() == id)
@@ -138,6 +146,11 @@ public class Database {
 
     public void addObject(HTMLObject object) {
         this.myObjects.add(object);
+    }
+
+    public void deleteObjectByID(int id) throws SQLException {
+        deleteInDB(id);
+        myObjects.removeIf(o -> o.getId() == id);
     }
 
     public void replaceByID(HTMLObject newObject) {
@@ -151,20 +164,5 @@ public class Database {
     public List<HTMLObject> getMyObjects() {
         return Collections.unmodifiableList(myObjects);
     }
-
-/*
-    public boolean testConnection(int port, String user, String password) {
-        String url = "jdbc:sqlserver://localhost:" + port;
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            Connection testCnn = DriverManager.getConnection(url, user, password);
-            testCnn.close();
-            return true;
-        } catch (SQLException | ClassNotFoundException e) {
-            return false;
-        }
-
-    }
-*/
 
 }

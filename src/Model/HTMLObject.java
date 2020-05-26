@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 
 public class HTMLObject {
     private static final transient Gson gson = new Gson();
-    public static int count = 1;
+    public static int ID_IDENTIFY = 1;
     private final String[][] arr;
     private final Boolean header, index;
     private final String table;
@@ -105,14 +105,6 @@ public class HTMLObject {
 
     public String getDate() {
         return date;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        HTMLObject that = (HTMLObject) o;
-        return table.equals(that.table);
     }
 
 }

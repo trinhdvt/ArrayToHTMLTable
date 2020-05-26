@@ -26,15 +26,13 @@ public class Controller {
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
     private final HTMLObjectTableModel model;
-//    private final Preferences preferences;
-private HTMLObject editObject = null;
+    private HTMLObject editObject = null;
     private HTMLObject myObject = null;
     private boolean editMode = false;
 
     public Controller(View view, HTMLObjectTableModel model) {
         this.view = view;
         this.model = model;
-//        preferences = Preferences.userRoot().node(this.getClass().getName());
         initView();
         initModel();
         initController();
@@ -147,7 +145,7 @@ private HTMLObject editObject = null;
                 database.replaceByID(myObject);
                 editMode = false;
             } else {
-                myObject.setId(HTMLObject.count++);
+                myObject.setId(HTMLObject.ID_IDENTIFY++);
                 database.addObject(myObject);
             }
             try {
@@ -167,40 +165,39 @@ private HTMLObject editObject = null;
             myObject = null;
         });
 
-        /*view.getPrefsDialog().getCancelBtn().addActionListener(l -> view.getPrefsDialog().dispose());
-
-        view.getPrefsDialog().getOkBtn().addActionListener(l -> {
-            int port = (int) view.getPrefsDialog().getSpinner().getValue();
-            String user = view.getPrefsDialog().getUserField().getText();
-            String password = new String(view.getPrefsDialog().getPasswordField().getPassword());
-            boolean testResult = database.testConnection(port, user, password);
-            if (testResult) {
-                preferences.put("user", user);
-                preferences.put("password", password);
-                preferences.putInt("port", port);
-                view.getPrefsDialog().dispose();
-            } else
-                System.out.println("Test fail");
-
-        });*/
     }
 
     private void initTableAction() {
+        view.getDeleteRow().addActionListener(l -> {
+            JTable table = view.getHistoryTable();
+            int id = (int) model.getValueAt(table.getSelectedRow(), 0);
+            try {
+                database.deleteObjectByID(id);
+                refreshHistoryTable();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(view, e.getMessage(),
+                        "Delete Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        view.getEditRow().addActionListener(l -> {
+            JTable table = view.getHistoryTable();
+            int id = (int) model.getValueAt(table.getSelectedRow(), 0);
+            editObject = database.findByID(id);
+            editMode = true;
+            view.getInput().setText(generateRawInput(editObject.getArr()));
+            view.getHeader().setSelected(editObject.getHeader());
+            view.getIndex().setSelected(editObject.getIndex());
+            view.getOutput().setText(editObject.getTable());
+            view.getTabPane().setSelectedIndex(0);
+        });
         view.getHistoryTable().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
+                if (e.getButton() == MouseEvent.BUTTON3) {
                     JTable table = view.getHistoryTable();
-                    if (table.getSelectedRow() != -1) {
-                        int id = (int) model.getValueAt(table.getSelectedRow(), 0);
-                        editObject = database.findByID(id);
-                        editMode = true;
-                        view.getInput().setText(generateRawInput(editObject.getArr()));
-                        view.getHeader().setSelected(editObject.getHeader());
-                        view.getIndex().setSelected(editObject.getIndex());
-                        view.getOutput().setText(editObject.getTable());
-                        view.getTabPane().setSelectedIndex(0);
-                    }
+                    int row = table.rowAtPoint(e.getPoint());
+                    table.getSelectionModel().setSelectionInterval(row, row);
+                    view.getPopupMenu().show(table, e.getX(), e.getY());
                 }
             }
         });
