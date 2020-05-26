@@ -5,10 +5,10 @@ import java.awt.*;
 
 public class View extends JFrame {
 
+    //    private final PrefsDialog prefsDialog;
     private JTextArea inputTA, outputTA;
-    private JButton runBtn;
-    private JButton saveBtn;
-    private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult;
+    private JButton runBtn, saveBtn, clearBtn;
+    private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult, prefsMenu;
     private JCheckBox headerCB, indexCB;
     private JTabbedPane tabPane;
     private JTable table;
@@ -22,6 +22,7 @@ public class View extends JFrame {
         initComponents();
         createMenuBar();
 
+//        prefsDialog = new PrefsDialog(View.this);
         this.setVisible(true);
     }
 
@@ -78,8 +79,10 @@ public class View extends JFrame {
         commandPanel.setBorder(BorderFactory.createTitledBorder("Command"));
         runBtn = new JButton("Run");
         saveBtn = new JButton("Save");
+        clearBtn = new JButton("Clear");
         commandPanel.add(runBtn);
         commandPanel.add(saveBtn);
+        commandPanel.add(clearBtn);
 
         tabPanel1.add(mainPanel, BorderLayout.CENTER);
         tabPanel1.add(commandPanel, BorderLayout.SOUTH);
@@ -108,7 +111,12 @@ public class View extends JFrame {
         helpMenu.add(gettingStarted);
         helpMenu.add(aboutMenu);
 
+        JMenu windowMenu = new JMenu("Window");
+        prefsMenu = new JMenuItem("Preferences");
+        windowMenu.add(prefsMenu);
+
         menuBar.add(fileMenu);
+        menuBar.add(windowMenu);
         menuBar.add(helpMenu);
 
         this.setJMenuBar(menuBar);
@@ -161,4 +169,18 @@ public class View extends JFrame {
     public JTabbedPane getTabPane() {
         return tabPane;
     }
+
+    public JButton getClearBtn() {
+        return clearBtn;
+    }
+
+/*
+    public PrefsDialog getPrefsDialog() {
+        return prefsDialog;
+    }
+
+    public JMenuItem getPrefsMenu() {
+        return prefsMenu;
+    }
+*/
 }
