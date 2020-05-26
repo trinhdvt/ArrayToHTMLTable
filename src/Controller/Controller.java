@@ -26,13 +26,15 @@ public class Controller {
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
     private final HTMLObjectTableModel model;
-    private HTMLObject editObject = null;
+//    private final Preferences preferences;
+private HTMLObject editObject = null;
     private HTMLObject myObject = null;
     private boolean editMode = false;
 
     public Controller(View view, HTMLObjectTableModel model) {
         this.view = view;
         this.model = model;
+//        preferences = Preferences.userRoot().node(this.getClass().getName());
         initView();
         initModel();
         initController();
@@ -74,6 +76,7 @@ public class Controller {
                 t.start();
             }
         });
+//        view.getPrefsMenu().addActionListener(l -> view.getPrefsDialog().setVisible(true));
     }
 
     private void initWindowAction() {
@@ -138,22 +141,48 @@ public class Controller {
         });
 
         view.getSaveBtn().addActionListener(l -> {
-            if (editMode)
-                enterEditMode();
-            else
+            if (myObject == null) return;
+            if (editMode) {
+                myObject.setId(editObject.getId());
+                database.replaceByID(myObject);
+                editMode = false;
+            } else {
                 myObject.setId(HTMLObject.count++);
+                database.addObject(myObject);
+            }
             try {
-                if (myObject != null) {
-                    database.addObject(myObject);
-                    database.saveToDB(myObject);
-                    refreshHistoryTable();
-                }
+                database.saveToDB(myObject);
+                refreshHistoryTable();
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(view, "Cannot save data",
                         "Save data error!", JOptionPane.ERROR_MESSAGE);
-                System.out.println(e.getMessage());
             }
         });
+
+        view.getClearBtn().addActionListener(l -> {
+            view.getInput().setText("");
+            view.getOutput().setText("");
+            view.getHeader().setSelected(false);
+            view.getIndex().setSelected(false);
+            myObject = null;
+        });
+
+        /*view.getPrefsDialog().getCancelBtn().addActionListener(l -> view.getPrefsDialog().dispose());
+
+        view.getPrefsDialog().getOkBtn().addActionListener(l -> {
+            int port = (int) view.getPrefsDialog().getSpinner().getValue();
+            String user = view.getPrefsDialog().getUserField().getText();
+            String password = new String(view.getPrefsDialog().getPasswordField().getPassword());
+            boolean testResult = database.testConnection(port, user, password);
+            if (testResult) {
+                preferences.put("user", user);
+                preferences.put("password", password);
+                preferences.putInt("port", port);
+                view.getPrefsDialog().dispose();
+            } else
+                System.out.println("Test fail");
+
+        });*/
     }
 
     private void initTableAction() {
@@ -175,12 +204,6 @@ public class Controller {
                 }
             }
         });
-    }
-
-    private void enterEditMode() {
-        myObject.setId(editObject.getId());
-        database.deleteObject(editObject.getId());
-        editMode = false;
     }
 
     private void refreshHistoryTable() {
@@ -218,6 +241,11 @@ public class Controller {
     }
 
     private String generateRawInput(String[][] arr) {
-        return null;
+        StringBuilder sb = new StringBuilder();
+        for (String[] row : arr) {
+            String tmp = String.join(", ", row);
+            sb.append(tmp).append("\n");
+        }
+        return sb.toString();
     }
 }
