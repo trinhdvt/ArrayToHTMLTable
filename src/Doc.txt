@@ -10,3 +10,4 @@
 * Output
     - Output is a string containing HTML tags representing the data from input array.
     - Press Run button, result will appear in TextField of output panel.
+* Note that application only save data if you press Save button, otherwise it won't do anything.
