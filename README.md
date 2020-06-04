@@ -1,5 +1,4 @@
 # ArrayToHTMLTable
-My ~~bullshit~~ project, solve a problem in [CodeWars](https://www.codewars.com/kata/5e7e4b7cd889f7001728fd4a/python) using Java with GUI and Database for store input and output
 <h2 class="header">Overview</h2>
 <p>The task is simple - given a 2D array (list), generate an HTML table representing the data from this array.</p>
 <p>You need to write a function called <code>to_table</code>/<code>toTable</code>, that takes three arguments:</p>
