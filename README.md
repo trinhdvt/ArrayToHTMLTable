@@ -40,7 +40,6 @@ HTML table is structured like this:
 <h2 class="header">Requirement</h2>
 <ul>
   <li><code>Java 8 or higher (Java 8 is recommended)</code></li>
-  <li><code>Microsoft SQL Server 2008 R2</code></li>
 </ul>
 
 
