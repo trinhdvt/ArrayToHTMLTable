@@ -90,10 +90,6 @@ public class Controller {
                         JOptionPane.showMessageDialog(view,
                                 "Cannot connect DB " + exception.getMessage(),
                                 "Connect DB error!", JOptionPane.ERROR_MESSAGE);
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException ignore) {
-                        }
                         view.dispose();
                     }
                 });
