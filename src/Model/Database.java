@@ -27,11 +27,11 @@ public class Database {
 
     public void connect() throws ClassNotFoundException, SQLException {
         if (cnn == null) {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            final String DB_URL = "jdbc:sqlserver://localhost;integratedSecurity=true";
-//            final String USER_NAME = "sa";
-//            final String PASS_WORD = "illusion";
-            cnn = DriverManager.getConnection(DB_URL);
+//            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//            final String DB_URL = "jdbc:sqlserver://localhost;integratedSecurity=true";
+//            cnn = DriverManager.getConnection(DB_URL);
+            Class.forName("org.sqlite.JDBC");
+            cnn = DriverManager.getConnection("jdbc:sqlite:db/" + DB_NAME + ".db");
             createDB();
         }
     }
@@ -43,6 +43,15 @@ public class Database {
 
     private void createDB() throws SQLException {
         if (cnn == null) return;
+        try (Statement stm = cnn.createStatement()) {
+            String query = "create table if not exists Log(" +
+                    "id integer primary key autoincrement, " +
+                    "input text ," +
+                    "output text not null ," +
+                    "date text not null );";
+            stm.execute(query);
+        }
+        /*if (cnn == null) return;
         Statement stm = null;
         try {
             stm = cnn.createStatement();
@@ -62,7 +71,7 @@ public class Database {
         } finally {
             if (stm != null)
                 stm.close();
-        }
+        }*/
 
     }
 
@@ -95,39 +104,40 @@ public class Database {
 
     private boolean isDataExist(HTMLObject object) throws SQLException {
         String selectQuery = "select count(*) from Log where id = ?";
-        PreparedStatement selectStm = cnn.prepareStatement(selectQuery);
-        selectStm.setInt(1, object.getId());
-        ResultSet selectResult = selectStm.executeQuery();
-        selectResult.next();
-        boolean res = selectResult.getInt(1) != 0;
-        selectStm.close();
-        selectResult.close();
+        boolean res;
+        try (PreparedStatement selectStm = cnn.prepareStatement(selectQuery)) {
+            selectStm.setInt(1, object.getId());
+            try (ResultSet selectResult = selectStm.executeQuery()) {
+                selectResult.next();
+                res = selectResult.getInt(1) != 0;
+            }
+        }
         return res;
     }
 
     private void updateDB(HTMLObject object) throws SQLException {
         String updateQuery = "update Log set [input] = ?, [output] = ?, [date] = ? where [id] = ?";
-        PreparedStatement updateStm = cnn.prepareStatement(updateQuery);
-        int index = 1;
-        Object[] value = object.getWritableData();
-        updateStm.setString(index++, String.valueOf(value[0]));
-        updateStm.setString(index++, String.valueOf(value[1]));
-        updateStm.setString(index++, String.valueOf(value[2]));
-        updateStm.setInt(index, object.getId());
-        updateStm.executeUpdate();
-        updateStm.close();
+        try (PreparedStatement updateStm = cnn.prepareStatement(updateQuery)) {
+            int index = 1;
+            Object[] value = object.getWritableData();
+            updateStm.setString(index++, String.valueOf(value[0]));
+            updateStm.setString(index++, String.valueOf(value[1]));
+            updateStm.setString(index++, String.valueOf(value[2]));
+            updateStm.setInt(index, object.getId());
+            updateStm.executeUpdate();
+        }
     }
 
     private void insertToDB(HTMLObject object) throws SQLException {
         String insertSql = "insert into Log([input], [output] ,[date]) values (?,?,?)";
-        PreparedStatement insertStm = cnn.prepareStatement(insertSql);
-        int index = 1;
-        Object[] insertValue = object.getWritableData();
-        insertStm.setString(index++, String.valueOf(insertValue[0]));
-        insertStm.setString(index++, String.valueOf(insertValue[1]));
-        insertStm.setString(index, String.valueOf(insertValue[2]));
-        insertStm.executeUpdate();
-        insertStm.close();
+        try (PreparedStatement insertStm = cnn.prepareStatement(insertSql)) {
+            int index = 1;
+            Object[] insertValue = object.getWritableData();
+            insertStm.setString(index++, String.valueOf(insertValue[0]));
+            insertStm.setString(index++, String.valueOf(insertValue[1]));
+            insertStm.setString(index, String.valueOf(insertValue[2]));
+            insertStm.executeUpdate();
+        }
     }
 
     private void deleteInDB(int id) throws SQLException {
