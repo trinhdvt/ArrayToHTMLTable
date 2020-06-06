@@ -3,8 +3,8 @@ package View;
 import javax.swing.*;
 import java.awt.*;
 
-public class View extends JFrame {
-    private JTextArea inputTA, outputTA;
+public class InputView extends JFrame {
+    private JTextArea inputTA;
     private JButton runBtn, saveBtn, clearBtn;
     private JMenuItem exitMenu, aboutMenu, gettingStarted, exportResult, deleteRow, editRow;
     private JCheckBox headerCB, indexCB;
@@ -12,16 +12,13 @@ public class View extends JFrame {
     private JTable table;
     private JPopupMenu popupMenu;
 
-    public View() {
-        this.setTitle("ArrayToHTMLTable");
-        this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    public InputView(String title) {
+        super(title);
         this.setSize(500, 500);
-        this.setLocationRelativeTo(null);
 
         initComponents();
         createMenuBar();
 
-        this.setVisible(true);
     }
 
     private void initComponents() {
@@ -35,7 +32,7 @@ public class View extends JFrame {
         JPanel tabPanel1 = new JPanel();
 
         tabPanel1.setLayout(new BorderLayout());
-        JPanel mainPanel = new JPanel(new GridLayout(2, 1));
+        JPanel mainPanel = new JPanel(new GridLayout(1, 1));
 
         JPanel panel1 = new JPanel(new BorderLayout(5, 5));
         panel1.setBorder(BorderFactory.createTitledBorder("Input"));
@@ -64,14 +61,14 @@ public class View extends JFrame {
         panel1.add(panel1_1, BorderLayout.SOUTH);
         mainPanel.add(panel1);
 
-        JPanel panel2 = new JPanel(new GridLayout(1, 1));
+        /*JPanel panel2 = new JPanel(new GridLayout(1, 1));
         panel2.setBorder(BorderFactory.createTitledBorder("Output"));
         outputTA = new JTextArea(1, 1);
         outputTA.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         outputTA.setLineWrap(true);
         outputTA.setEditable(false);
         panel2.add(new JScrollPane(outputTA));
-        mainPanel.add(panel2);
+        mainPanel.add(panel2);*/
 
         JPanel commandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         commandPanel.setBorder(BorderFactory.createTitledBorder("Command"));
@@ -118,12 +115,7 @@ public class View extends JFrame {
         helpMenu.add(gettingStarted);
         helpMenu.add(aboutMenu);
 
-        JMenu windowMenu = new JMenu("Window");
-/*        prefsMenu = new JMenuItem("Preferences");
-        windowMenu.add(prefsMenu);*/
-
         menuBar.add(fileMenu);
-        menuBar.add(windowMenu);
         menuBar.add(helpMenu);
 
         this.setJMenuBar(menuBar);
@@ -131,10 +123,6 @@ public class View extends JFrame {
 
     public JTextArea getInput() {
         return inputTA;
-    }
-
-    public JTextArea getOutput() {
-        return outputTA;
     }
 
     public JCheckBox getHeader() {
