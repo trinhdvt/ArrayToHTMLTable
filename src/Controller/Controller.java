@@ -3,9 +3,11 @@ package Controller;
 import Model.Database;
 import Model.HTMLObject;
 import Model.HTMLObjectTableModel;
-import View.View;
+import View.InputView;
+import View.OutputView;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -21,7 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Controller {
-    private final View view;
+    private final InputView inputView;
+    private final OutputView outputView;
     private final Database database = Database.getInstance();
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
@@ -30,16 +33,26 @@ public class Controller {
     private HTMLObject myObject = null;
     private boolean editMode = false;
 
-    public Controller(View view, HTMLObjectTableModel model) {
-        this.view = view;
-        this.model = model;
+    public Controller() {
+        inputView = new InputView("ArrayToHTMLTable");
+        outputView = new OutputView("Output Window");
+        model = new HTMLObjectTableModel();
         initView();
         initModel();
         initController();
     }
 
     private void initView() {
-        view.getHistoryTable().setModel(model);
+        inputView.getHistoryTable().setModel(model);
+        inputView.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        inputView.setVisible(true);
+
+        Point x = inputView.getLocation();
+        outputView.setLocation(new Point((int) (x.getX() + inputView.getWidth()), (int) x.getY()));
+        outputView.setSize(new Dimension(inputView.getSize()));
+        outputView.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        outputView.setVisible(true);
+
     }
 
     private void initModel() {
@@ -54,10 +67,10 @@ public class Controller {
     }
 
     private void initMenuAction() {
-        view.getAboutMenu().addActionListener(l -> JOptionPane.showMessageDialog(view,
+        inputView.getAboutMenu().addActionListener(l -> JOptionPane.showMessageDialog(inputView,
                 "Trinh-dvt", "About", JOptionPane.INFORMATION_MESSAGE));
-        view.getExitMenu().addActionListener(l -> view.dispatchEvent(new WindowEvent(view, WindowEvent.WINDOW_CLOSING)));
-        view.getGettingStartedMenu().addActionListener(l -> {
+        inputView.getExitMenu().addActionListener(l -> inputView.dispatchEvent(new WindowEvent(inputView, WindowEvent.WINDOW_CLOSING)));
+        inputView.getGettingStartedMenu().addActionListener(l -> {
             File doc = new File("src/Doc.txt");
             String absPath = doc.getAbsolutePath();
             try {
@@ -66,19 +79,19 @@ public class Controller {
                 e.printStackTrace();
             }
         });
-        view.getExportResult().addActionListener(l -> {
-            if (fileChooser.showSaveDialog(view) == JFileChooser.APPROVE_OPTION) {
+        inputView.getExportResult().addActionListener(l -> {
+            if (fileChooser.showSaveDialog(inputView) == JFileChooser.APPROVE_OPTION) {
                 Thread t = new Thread(() -> exportDataToFile(fileChooser.getSelectedFile()));
                 t.setName("Export Data");
                 myThreadId.add(t.getId());
                 t.start();
             }
         });
-//        view.getPrefsMenu().addActionListener(l -> view.getPrefsDialog().setVisible(true));
+//        inputView.getPrefsMenu().addActionListener(l -> inputView.getPrefsDialog().setVisible(true));
     }
 
     private void initWindowAction() {
-        view.addWindowListener(new WindowAdapter() {
+        inputView.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
                 Thread t = new Thread(() -> {
@@ -87,10 +100,10 @@ public class Controller {
                         database.loadDB();
                         refreshHistoryTable();
                     } catch (ClassNotFoundException | SQLException exception) {
-                        JOptionPane.showMessageDialog(view,
+                        JOptionPane.showMessageDialog(inputView,
                                 "Cannot connect DB " + exception.getMessage(),
                                 "Connect DB error!", JOptionPane.ERROR_MESSAGE);
-                        view.dispose();
+                        inputView.dispose();
                     }
                 });
                 t.start();
@@ -102,39 +115,42 @@ public class Controller {
                 int res;
                 final Set<Thread> threads = Thread.getAllStackTraces().keySet();
                 if (threads.stream().anyMatch(t -> myThreadId.contains(t.getId()))) {
-                    res = JOptionPane.showConfirmDialog(view,
+                    res = JOptionPane.showConfirmDialog(inputView,
                             "Something is running in background. Force to exit ?",
                             null, JOptionPane.OK_CANCEL_OPTION);
                     if (res == JOptionPane.CANCEL_OPTION)
                         return;
                 } else
-                    res = JOptionPane.showConfirmDialog(view, "Do you want to exit!",
+                    res = JOptionPane.showConfirmDialog(inputView, "Do you want to exit!",
                             "Exit Confirm", JOptionPane.OK_CANCEL_OPTION);
                 if (res == JOptionPane.OK_OPTION) {
                     try {
                         database.disconnect();
                     } catch (SQLException ignored) {
+                    } finally {
+                        outputView.dispose();
+                        inputView.dispose();
                     }
-                    view.dispose();
                 }
             }
         });
     }
 
     private void initButtonAction() {
-        view.getRunBtn().addActionListener(l -> {
-            String rawInput = view.getInput().getText().trim();
-            boolean header = view.getHeader().isSelected();
-            boolean index = view.getIndex().isSelected();
+        inputView.getRunBtn().addActionListener(l -> {
+            String rawInput = inputView.getInput().getText().trim();
+            boolean header = inputView.getHeader().isSelected();
+            boolean index = inputView.getIndex().isSelected();
             if ("".equals(rawInput))
                 return;
             String[][] input = preProcessInput(rawInput);
             String date = new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
             myObject = new HTMLObject(input, new boolean[]{header, index}, date);
-            view.getOutput().setText(myObject.getTable());
+            if (!outputView.isVisible()) outputView.setVisible(true);
+            outputView.getOutputTA().setText(myObject.getTable());
         });
 
-        view.getSaveBtn().addActionListener(l -> {
+        inputView.getSaveBtn().addActionListener(l -> {
             if (myObject == null) return;
             if (editMode) {
                 myObject.setId(editObject.getId());
@@ -148,52 +164,52 @@ public class Controller {
                 database.saveToDB(myObject);
                 refreshHistoryTable();
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(view, "Cannot save data",
+                JOptionPane.showMessageDialog(inputView, "Cannot save data",
                         "Save data error!", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        view.getClearBtn().addActionListener(l -> {
-            view.getInput().setText("");
-            view.getOutput().setText("");
-            view.getHeader().setSelected(false);
-            view.getIndex().setSelected(false);
+        inputView.getClearBtn().addActionListener(l -> {
+            inputView.getInput().setText("");
+            outputView.getOutputTA().setText("");
+            inputView.getHeader().setSelected(false);
+            inputView.getIndex().setSelected(false);
             myObject = null;
         });
 
     }
 
     private void initTableAction() {
-        view.getDeleteRow().addActionListener(l -> {
-            JTable table = view.getHistoryTable();
+        inputView.getDeleteRow().addActionListener(l -> {
+            JTable table = inputView.getHistoryTable();
             int id = (int) model.getValueAt(table.getSelectedRow(), 0);
             try {
                 database.deleteObjectByID(id);
                 refreshHistoryTable();
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(view, e.getMessage(),
+                JOptionPane.showMessageDialog(inputView, e.getMessage(),
                         "Delete Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-        view.getEditRow().addActionListener(l -> {
-            JTable table = view.getHistoryTable();
+        inputView.getEditRow().addActionListener(l -> {
+            JTable table = inputView.getHistoryTable();
             int id = (int) model.getValueAt(table.getSelectedRow(), 0);
             editObject = database.findByID(id);
             editMode = true;
-            view.getInput().setText(generateRawInput(editObject.getArr()));
-            view.getHeader().setSelected(editObject.getHeader());
-            view.getIndex().setSelected(editObject.getIndex());
-            view.getOutput().setText(editObject.getTable());
-            view.getTabPane().setSelectedIndex(0);
+            inputView.getInput().setText(generateRawInput(editObject.getArr()));
+            inputView.getHeader().setSelected(editObject.getHeader());
+            inputView.getIndex().setSelected(editObject.getIndex());
+            outputView.getOutputTA().setText(editObject.getTable());
+            inputView.getTabPane().setSelectedIndex(0);
         });
-        view.getHistoryTable().addMouseListener(new MouseAdapter() {
+        inputView.getHistoryTable().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON3) {
-                    JTable table = view.getHistoryTable();
+                    JTable table = inputView.getHistoryTable();
                     int row = table.rowAtPoint(e.getPoint());
                     table.getSelectionModel().setSelectionInterval(row, row);
-                    view.getPopupMenu().show(table, e.getX(), e.getY());
+                    inputView.getPopupMenu().show(table, e.getX(), e.getY());
                 }
             }
         });
@@ -205,7 +221,7 @@ public class Controller {
 
     private void exportDataToFile(File file) {
         if (myObject == null) {
-            JOptionPane.showMessageDialog(view, "Nothing to export",
+            JOptionPane.showMessageDialog(inputView, "Nothing to export",
                     "Export information", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
@@ -213,7 +229,7 @@ public class Controller {
              BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(myObject.getJsonString());
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(view, e.getMessage(),
+            JOptionPane.showMessageDialog(inputView, e.getMessage(),
                     "Errors occur", JOptionPane.ERROR_MESSAGE);
         }
     }
