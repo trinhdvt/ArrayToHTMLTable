@@ -12,47 +12,69 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Controller {
+public class MyController {
     private final InputView inputView;
     private final OutputView outputView;
     private final Database database = Database.getInstance();
     private final JFileChooser fileChooser = new JFileChooser();
     private final HashSet<Long> myThreadId = new HashSet<>();
     private final HTMLObjectTableModel model;
+    //    private final GettingStartedView gettingStartedView;
     private HTMLObject editObject = null;
     private HTMLObject myObject = null;
     private boolean editMode = false;
 
-    public Controller() {
+    public MyController() {
         inputView = new InputView("ArrayToHTMLTable");
         outputView = new OutputView("Output Window");
+//        gettingStartedView = new GettingStartedView("Getting Started");
         model = new HTMLObjectTableModel();
         initView();
         initModel();
         initController();
     }
 
+/*
+    public static String readDocument() {
+        File file = new File("Doc.txt");
+        StringBuilder doc = new StringBuilder();
+        String line;
+
+        try (FileReader fileReader = new FileReader(file);
+             BufferedReader br = new BufferedReader(fileReader)) {
+            while ((line = br.readLine()) != null) {
+                doc.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+        return doc.toString();
+    }
+*/
+
     private void initView() {
+//        gettingStartedView.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
         inputView.getHistoryTable().setModel(model);
         inputView.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        inputView.setVisible(true);
 
         Point x = inputView.getLocation();
         outputView.setLocation(new Point((int) (x.getX() + inputView.getWidth()), (int) x.getY()));
         outputView.setSize(new Dimension(inputView.getSize()));
         outputView.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        outputView.setVisible(true);
 
+        inputView.setVisible(true);
+        outputView.setVisible(true);
+//        gettingStartedView.setLocationRelativeTo(null);
+//        gettingStartedView.setVisible(true);
     }
 
     private void initModel() {
@@ -71,23 +93,27 @@ public class Controller {
                 "Trinh-dvt", "About", JOptionPane.INFORMATION_MESSAGE));
         inputView.getExitMenu().addActionListener(l -> inputView.dispatchEvent(new WindowEvent(inputView, WindowEvent.WINDOW_CLOSING)));
         inputView.getGettingStartedMenu().addActionListener(l -> {
-            File doc = new File("src/Doc.txt");
-            String absPath = doc.getAbsolutePath();
-            try {
-                new ProcessBuilder("Notepad.exe", absPath).start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         });
         inputView.getExportResult().addActionListener(l -> {
+            if (myObject == null) {
+                JOptionPane.showMessageDialog(inputView, "Nothing to export",
+                        "Export information", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
             if (fileChooser.showSaveDialog(inputView) == JFileChooser.APPROVE_OPTION) {
-                Thread t = new Thread(() -> exportDataToFile(fileChooser.getSelectedFile()));
+                Thread t = new Thread(() -> {
+                    try {
+                        exportDataToFile(fileChooser.getSelectedFile());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                 t.setName("Export Data");
                 myThreadId.add(t.getId());
                 t.start();
             }
         });
-//        inputView.getPrefsMenu().addActionListener(l -> inputView.getPrefsDialog().setVisible(true));
     }
 
     private void initWindowAction() {
@@ -176,7 +202,6 @@ public class Controller {
             inputView.getIndex().setSelected(false);
             myObject = null;
         });
-
     }
 
     private void initTableAction() {
@@ -215,22 +240,25 @@ public class Controller {
         });
     }
 
+    //Utils Function
     private void refreshHistoryTable() {
         model.fireTableDataChanged();
     }
 
-    private void exportDataToFile(File file) {
-        if (myObject == null) {
-            JOptionPane.showMessageDialog(inputView, "Nothing to export",
-                    "Export information", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
+    private void exportDataToFile(File file) throws IOException {
+        String htmlTmp = readHTMLTemplate();
+        String output = myObject.getTableAsHTML();
+        String header = String.valueOf(myObject.getHeader());
+        String index = String.valueOf(myObject.getIndex());
+        String arr = Arrays.deepToString(myObject.getArr());
+        htmlTmp = htmlTmp.replaceAll("@output", output)
+                .replaceAll("@header", header)
+                .replaceAll("@index", index)
+                .replaceAll("@arr", arr);
+
         try (FileWriter fw = new FileWriter(file);
              BufferedWriter bw = new BufferedWriter(fw)) {
-            bw.write(myObject.getJsonString());
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(inputView, e.getMessage(),
-                    "Errors occur", JOptionPane.ERROR_MESSAGE);
+            bw.write(htmlTmp);
         }
     }
 
@@ -254,6 +282,18 @@ public class Controller {
         for (String[] row : arr) {
             String tmp = String.join(", ", row);
             sb.append(tmp).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String readHTMLTemplate() throws IOException {
+        File file = new File("template/IndexTemp.html");
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
         }
         return sb.toString();
     }
