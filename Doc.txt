@@ -1,4 +1,3 @@
-* Author: Trinh-dvt
 * Problem name: ArrayToHTMLTable
 * Input:
     - In this problem the input is a 2-D array (M rows, N columns).
