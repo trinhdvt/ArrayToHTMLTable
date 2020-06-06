@@ -39,6 +39,7 @@ public class InputView extends JFrame {
         panel1.add(new JLabel("2-D Array"), BorderLayout.WEST);
         inputTA = new JTextArea(1, 1);
         inputTA.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        inputTA.setFont(new Font("Segoe UI", Font.PLAIN,16));
         panel1.add(inputTA, BorderLayout.CENTER);
 
         JPanel panel1_1 = new JPanel(new GridBagLayout());
