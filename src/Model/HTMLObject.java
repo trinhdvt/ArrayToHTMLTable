@@ -36,38 +36,8 @@ public class HTMLObject {
         return object;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String[][] getArr() {
-        return arr;
-    }
-
-    public Boolean getHeader() {
-        return header;
-    }
-
-    public Boolean getIndex() {
-        return index;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
     private static String wrapInSpanTag(Object str) {
         return "<span>" + "<" + "</span>" + "<span>" + str + "</span>" + "<span>" + ">" + "</span>";
-    }
-    //
-
-    // Getter and Setter
-    public int getId() {
-        return id;
-    }
-
-    public String getTable() {
-        return table;
     }
 
     private String toTable() {
@@ -99,7 +69,7 @@ public class HTMLObject {
         return table.toString();
     }
 
-    public String getAsHTMLTag() {
+    public String getTableAsHTML() {
         StringBuilder table = new StringBuilder();
         table.append(wrapInSpanTag("table")).append("\n");
         if (header) {
@@ -150,5 +120,36 @@ public class HTMLObject {
     public String getJsonString() {
         return gson.toJson(this);
     }
+    //
+
+    // Getter and Setter
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String[][] getArr() {
+        return arr;
+    }
+
+    public Boolean getHeader() {
+        return header;
+    }
+
+    public Boolean getIndex() {
+        return index;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getTable() {
+        return table;
+    }
+
     //
 }
