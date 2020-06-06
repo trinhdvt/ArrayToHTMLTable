@@ -21,6 +21,7 @@ public class HTMLObject {
         this.table = this.toTable();
     }
 
+    //Utils Function
     public static HTMLObject createObjectFromProperty(int id, String input, String output, String date) {
         String[] tmp = input.split(", ");
         String arr = "\"arr\":" + tmp[0];
@@ -33,6 +34,40 @@ public class HTMLObject {
         HTMLObject object = gson.fromJson(json, HTMLObject.class);
         object.setId(id);
         return object;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String[][] getArr() {
+        return arr;
+    }
+
+    public Boolean getHeader() {
+        return header;
+    }
+
+    public Boolean getIndex() {
+        return index;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    private static String wrapInSpanTag(Object str) {
+        return "<span>" + "<" + "</span>" + "<span>" + str + "</span>" + "<span>" + ">" + "</span>";
+    }
+    //
+
+    // Getter and Setter
+    public int getId() {
+        return id;
+    }
+
+    public String getTable() {
+        return table;
     }
 
     private String toTable() {
@@ -64,8 +99,41 @@ public class HTMLObject {
         return table.toString();
     }
 
-    public String getTable() {
-        return table;
+    public String getAsHTMLTag() {
+        StringBuilder table = new StringBuilder();
+        table.append(wrapInSpanTag("table")).append("\n");
+        if (header) {
+            StringBuilder head = new StringBuilder();
+            head.append("    ").append(wrapInSpanTag("thead")).append("\n").append("        ").append(wrapInSpanTag("tr")).append("\n");
+            if (index) {
+                head.append("            ").append(wrapInSpanTag("th")).append(wrapInSpanTag("/th")).append("\n");
+            }
+            for (Object item : arr[0]) {
+                head.append("            ").append(wrapInSpanTag("th")).append(item != null ? wrapInSpanTag(item) : wrapInSpanTag("")).append(wrapInSpanTag("/th")).append("\n");
+            }
+            head.append("        ").append(wrapInSpanTag("/tr")).append("\n").append("    ").append(wrapInSpanTag("thead")).append("\n");
+            table.append(head);
+        }
+        StringBuilder body = new StringBuilder();
+        body.append("    ").append(wrapInSpanTag("tbody")).append("\n");
+        int baseIndex = 1;
+        int startIndex = (header ? 1 : 0);
+        for (int i = startIndex; i < arr.length; i++) {
+            StringBuilder row = new StringBuilder();
+            row.append("        ").append(wrapInSpanTag("tr")).append("\n");
+            if (index) {
+                row.append("            ").append(wrapInSpanTag("td")).append(wrapInSpanTag(baseIndex++)).append(wrapInSpanTag("/td")).append("\n");
+            }
+            for (Object item : arr[i]) {
+                row.append("            ").append(wrapInSpanTag("td")).append(item != null ? wrapInSpanTag(item) : wrapInSpanTag("")).append(wrapInSpanTag("/td")).append("\n");
+            }
+            row.append("        ").append(wrapInSpanTag("/tr")).append("\n");
+            body.append(row);
+        }
+        body.append("    ").append(wrapInSpanTag("/tbody")).append("\n");
+        table.append(body).append(wrapInSpanTag("/table"));
+
+        return table.toString();
     }
 
     public Object[] getWritableData() {
@@ -82,29 +150,5 @@ public class HTMLObject {
     public String getJsonString() {
         return gson.toJson(this);
     }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String[][] getArr() {
-        return arr;
-    }
-
-    public Boolean getHeader() {
-        return header;
-    }
-
-    public Boolean getIndex() {
-        return index;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
+    //
 }
